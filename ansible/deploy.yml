@@ -10,6 +10,10 @@
         mode: '0755'
     - name: Unarchive artifact
       shell: tar -xzvf hellonode.tgz
+    - name: Install dependancies
+      shell: npm install
+      args:
+        chdir: package
     - name: Restart PM2
       shell: pm2 restart package/app.js -i max
       register: result
