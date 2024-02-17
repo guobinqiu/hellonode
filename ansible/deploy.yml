@@ -1,7 +1,7 @@
 - hosts: nodejs
   gather_facts: yes
   environment:
-    PATH: "/home/guobin/.nvm/versions/node/v21.6.2/bin:{{ ansible_env.PATH }}"
+    PATH: "/home/guobin/.nvm/versions/node/v21.6.2/bin:{{ ansible_env.PATH }}" #非交互式shell缺少node路径
   tasks:
     - name: Copy hellonode to remote 
       copy:
@@ -9,7 +9,7 @@
         dest: "hellonode.tgz" # 相对于/home/guobin/
         mode: '0755'
     - name: Unarchive artifact
-      shell: tar -xzvf hellonode.tgz && mv package hellonode && rm hellonode.tgz
+      shell: tar -xzvf hellonode.tgz && mv package hellonode
     - name: Restart PM2
       shell: pm2 restart hellonode/app.js -i max
       register: result
