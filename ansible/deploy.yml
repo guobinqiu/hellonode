@@ -1,5 +1,7 @@
 - hosts: nodejs
   gather_facts: no
+  environment:
+    PATH: "/home/guobin/.nvm/versions/node/v21.6.2/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: Copy hellonode to remote 
       copy:
@@ -9,9 +11,9 @@
     - name: Unarchive artifact
       shell: tar -xzvf hellonode.tgz && mv package hellonode && rm hellonode.tgz
     - name: Restart PM2
-      shell: /home/guobin/.nvm/versions/node/v21.6.2/bin/pm2 restart hellonode/app.js -i max
+      shell: pm2 restart hellonode/app.js -i max
       register: result
       ignore_errors: true
     - name: Start PM2
-      shell: /home/guobin/.nvm/versions/node/v21.6.2/bin/pm2 start hellonode/app.js -i max
+      shell: pm2 start hellonode/app.js -i max
       when: result is failed #is failed是ansible的固定写法检查一个任务是否失败
