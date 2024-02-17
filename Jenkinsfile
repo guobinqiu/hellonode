@@ -8,9 +8,6 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                //安装依赖
-                sh 'npm install'
-
                 //打包项目
                 sh 'npm pack'
 
