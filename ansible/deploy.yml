@@ -7,6 +7,6 @@
         dest: "./hellonode.tgz"
         mode: '0755'
     - name: Unarchive artifact
-      shell: tar -xzvf ./hellonode.tgz
+      shell: tar -xzvf ./hellonode.tgz && mv package hellonode
     - name: Restart PM2
       shell: pm2 restart ./hellonopde/app.js -i max
