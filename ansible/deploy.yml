@@ -1,4 +1,4 @@
-- hosts: go
+- hosts: nodejs
   gather_facts: no
   tasks:
     - name: Copy hellonode to remote 
