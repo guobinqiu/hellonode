@@ -1,5 +1,5 @@
 - hosts: nodejs
-  gather_facts: no
+  gather_facts: yes
   environment:
     PATH: "/home/guobin/.nvm/versions/node/v21.6.2/bin:{{ ansible_env.PATH }}"
   tasks:
