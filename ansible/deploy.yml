@@ -5,6 +5,7 @@
       copy:
         src: "{{ artifact }}"
         dest: "hellonode.tgz"
+        mode: '0755'
     - name: Unarchive artifact without top-level directory
       unarchive:
         src: hellonode.tgz
