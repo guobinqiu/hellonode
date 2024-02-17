@@ -1,0 +1,14 @@
+- hosts: go
+  gather_facts: no
+  tasks:
+    - name: Copy hellonode to remote 
+      copy:
+        src: "{{ artifact }}"
+        dest: "hellonode.tgz"
+    - name: Unarchive artifact without top-level directory
+      unarchive:
+        src: hellonode.tgz
+        dest: .
+        extra_opts: --strip-components=1
+    - name: Restart PM2
+      command: pm2 restart hellonopde/app.js -i max
