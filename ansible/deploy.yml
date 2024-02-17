@@ -8,9 +8,9 @@
         mode: '0755'
     - name: Unarchive artifact without top-level directory
       unarchive:
-        src: /home/guobin/hellonode.tgz
-        dest: /home/guobin
+        src: ./hellonode.tgz
+        dest: .
         extra_opts: --strip-components=1
-        remote_src: no
+        remote_src: yes
     - name: Restart PM2
       command: pm2 restart hellonopde/app.js -i max
