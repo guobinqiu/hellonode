@@ -11,7 +11,7 @@
     - name: Copy artifact to remote
       copy:
         src: "{{ artifact }}"
-        dest: './hellonode'
+        dest: './hellonode/hellonode.tgz'
         mode: '0755'
       when: artifact is defined
     - name: Restart PM2
