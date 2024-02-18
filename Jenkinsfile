@@ -28,7 +28,7 @@ pipeline {
                         ansible-playbook \
                         -u guobin \
                         -e "ansible_ssh_private_key_file=${SSH_KEY}" \
-                        -e "build_dir=.." \
+                        -e "build_dir=../../hellonode" \
                         -e "ansible_become_password=${ANSIBLE_BECOME_PASS}" \
                         -i ansible/inventory.ini \
                         ansible/deploy.yml
