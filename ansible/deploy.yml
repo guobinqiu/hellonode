@@ -7,7 +7,7 @@
       synchronize:
         src: "{{ build_dir }}"
         dest: '.'
-      when: {{ build_dir }} is defined  
+      when: build_dir is defined  
     - name: Copy artifact to remote
       copy:
         src: "{{ artifact }}"
