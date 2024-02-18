@@ -15,6 +15,11 @@ pipeline {
                 sh 'mv hellonode-1.0.0.tgz hellonode-${GIT_COMMIT}.tgz'
             }
         }
+        stage('Archieve') {
+            steps {
+                archiveArtifacts artifacts: 'hellonode-${GIT_COMMIT}.tgz', fingerprint: true
+            }
+        }
         stage('Deploy with Ansible') {
             steps {
                 withCredentials([
