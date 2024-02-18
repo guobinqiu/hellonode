@@ -17,9 +17,9 @@
         mode: '0755'
       when: artifact is defined
     - name: Restart PM2
-      shell: pm2 restart ./hellonode/app.js -i max
+      shell: pm2 restart ./hellonode/app.js -i max --name hellonode
       register: result
       ignore_errors: true
     - name: Start PM2
-      shell: pm2 start ./hellonode/app.js -i max
+      shell: pm2 start ./hellonode/app.js -i max --name hellonode
       when: result is failed #is failed是ansible的固定写法检查一个任务是否失败
