@@ -16,6 +16,7 @@ pipeline {
                 sh 'npm pack' //打包项目
                 sh 'mv hellonode-1.0.0.tgz hellonode-${GIT_COMMIT}.tgz' //重命名
                 archiveArtifacts artifacts: "hellonode-${GIT_COMMIT}.tgz", fingerprint: true //加入本地制品库
+                sh 'rm hellonode-${GIT_COMMIT}.tgz'
             }
         }
         stage('Deploy with Ansible') {
