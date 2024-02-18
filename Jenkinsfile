@@ -17,7 +17,7 @@ pipeline {
         }
         stage('Archieve') {
             steps {
-                archiveArtifacts artifacts: 'hellonode-${GIT_COMMIT}.tgz', fingerprint: true
+                archiveArtifacts artifacts: "hellonode-${GIT_COMMIT}.tgz", fingerprint: true
             }
         }
         stage('Deploy with Ansible') {
