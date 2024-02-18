@@ -8,16 +8,14 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                //打包项目
-                sh 'npm pack'
-
-                //重命名
-                sh 'mv hellonode-1.0.0.tgz hellonode-${GIT_COMMIT}.tgz'
+                sh 'npm install' //安装依赖
             }
         }
         stage('Archieve') {
             steps {
-                archiveArtifacts artifacts: "hellonode-${GIT_COMMIT}.tgz", fingerprint: true
+                sh 'npm pack' //打包项目
+                sh 'mv hellonode-1.0.0.tgz hellonode-${GIT_COMMIT}.tgz' //重命名
+                archiveArtifacts artifacts: "hellonode-${GIT_COMMIT}.tgz", fingerprint: true //加入本地制品库
             }
         }
         stage('Deploy with Ansible') {
@@ -30,7 +28,7 @@ pipeline {
                         ansible-playbook \
                         -u guobin \
                         -e "ansible_ssh_private_key_file=${SSH_KEY}" \
-                        -e "artifact=../hellonode-${GIT_COMMIT}.tgz" \
+                        -e "build_dir=.." \
                         -e "ansible_become_password=${ANSIBLE_BECOME_PASS}" \
                         -i ansible/inventory.ini \
                         ansible/deploy.yml
