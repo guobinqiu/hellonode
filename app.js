@@ -4,6 +4,7 @@ const port = 3000;
 
 // 定义路由
 app.get('/', (req, res) => {
+  console.log("route '/' was called");
   res.send('Hello NodeJS!');
 });
 
