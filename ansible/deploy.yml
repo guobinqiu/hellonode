@@ -7,7 +7,6 @@
       synchronize:
         src: "{{ build_dir }}"
         dest: '.' # 相对于/home/guobin/
-        mode: '0755'
     - name: Restart PM2
       shell: pm2 restart hellonode/app.js -i max
       register: result
