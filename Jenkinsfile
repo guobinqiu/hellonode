@@ -17,16 +17,15 @@ pipeline {
         }
         stage('Static Analysis') {
             steps {
+                //withSonarQubeEnv是SonarQube Scanner for Jenkins插件提供的一个函数
                 withSonarQubeEnv('sonarqube_server') {
-                    def scannerhome = tool 'sonarqube_scanner'
-                    withEnv(["PATH+=${scannerHome}/bin"]) {
-                        sh 'sonar-scanner'
-                    }
+                    sh '/opt/sonar-scanner/bin/sonar-scanner'
                 }
             }
         }
         stage('Deploy with Ansible') {
             steps {
+                //withCredentials是Credentials Binding Plugin插件提供的一个函数
                 withCredentials([
                     sshUserPrivateKey(credentialsId: '54e6cd1d-d917-4427-ac13-6d7ff0abdc39', keyFileVariable: 'SSH_KEY'),
                     string(credentialsId: '563e5a99-0d79-4b2d-a2e8-0061db54fbf5', variable: 'ANSIBLE_BECOME_PASS')
