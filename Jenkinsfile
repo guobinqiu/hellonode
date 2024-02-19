@@ -18,7 +18,10 @@ pipeline {
         stage('Static Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube_server') {
-                    sh 'sonar-scanner'
+                    def scannerhome = tool 'sonarqube_scanner'
+                    withEnv(["PATH+=${scannerHome}/bin"]) {
+                        sh 'sonar-scanner'
+                    }
                 }
             }
         }
