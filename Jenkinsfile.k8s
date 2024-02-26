@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'nodejs_21.6.2'
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'npm install' //安装依赖
+            }
+        }
+        stage('Static Analysis') {
+            steps {
+                //withSonarQubeEnv是SonarQube Scanner for Jenkins插件提供的一个函数
+                withSonarQubeEnv('sonarqube_server') {
+                    sh '/opt/sonar-scanner/bin/sonar-scanner'
+                }
+            }
+        }
+        stage('Deploy with Ansible') {
+            steps {
+                //withCredentials是Credentials Binding Plugin插件提供的一个函数, 凭证类型:Username with password
+                withCredentials([
+                    usernamePassword(credentialsId: '75d62f1f-d4a5-4033-b0b9-eb05ffb862be', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')
+                ]) {
+                    sh """
+                    docker build -t qiuguobin/hellonode -f Dockerfile .
+                    docker tag qiuguobin/hellonode qiuguobin/hellonode-${GIT_COMMIT}
+                    docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_TOKEN}
+                    docker push qiuguobin/hellonode
+                    docker push qiuguobin/hellonode-${GIT_COMMIT}
+                    """
+                }
+
+                //withKubeConfig是Kubernetes CLI Plugin插件提供的一个函数, 凭证类型:Secret file
+                withKubeConfig(credentialsId: '35b0ef8a-e4e7-4c14-8738-2adf2a3a54d0', contextName: 'kubernetes-admin@cluster.local') {
+                    sh 'kubectl apply -f k8s/deploy.yaml'
+                }
+            }
+        }
+    }
+}
