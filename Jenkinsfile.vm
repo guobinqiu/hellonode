@@ -37,8 +37,8 @@ pipeline {
                         -e "build_dir=../../hellonode" \
                         -e "artifact=../hellonode-${GIT_COMMIT}.tgz" \
                         -e "ansible_become_password=${ANSIBLE_BECOME_PASS}" \
-                        -i ansible/inventory.ini \
-                        ansible/deploy.yml
+                        -i vm/inventory.ini \
+                        vm/deploy.yml
                     '''
                 }
             }
