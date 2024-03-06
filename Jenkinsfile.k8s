@@ -23,12 +23,12 @@ pipeline {
             steps {
                 //withCredentials是Credentials Binding Plugin插件提供的一个函数, 凭证类型:Username with password
                 withCredentials([
-                    usernamePassword(credentialsId: '75d62f1f-d4a5-4033-b0b9-eb05ffb862be', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')
+                    usernamePassword(credentialsId: '75d62f1f-d4a5-4033-b0b9-eb05ffb862be', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
                 ]) {
                     sh """
                     docker build -t qiuguobin/hellonode -f Dockerfile .
                     docker tag qiuguobin/hellonode qiuguobin/hellonode-${GIT_COMMIT}
-                    docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_TOKEN}
+                    echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
                     docker push qiuguobin/hellonode
                     docker push qiuguobin/hellonode-${GIT_COMMIT}
                     """
