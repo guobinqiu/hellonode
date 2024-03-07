@@ -6,6 +6,15 @@ pipeline {
     }
 
     stages {
+        stage('Static Analysis') {
+            steps {
+                //withSonarQubeEnv是SonarQube Scanner for Jenkins插件提供的一个函数
+                withSonarQubeEnv('sonarqube_server') {
+                    sh '/opt/sonar-scanner/bin/sonar-scanner'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'rm -f hellonode-*.tgz' //清理旧打包
@@ -15,14 +24,7 @@ pipeline {
                 archiveArtifacts artifacts: "hellonode-${GIT_COMMIT}.tgz", fingerprint: true //加入本地制品库
             }
         }
-        stage('Static Analysis') {
-            steps {
-                //withSonarQubeEnv是SonarQube Scanner for Jenkins插件提供的一个函数
-                withSonarQubeEnv('sonarqube_server') {
-                    sh '/opt/sonar-scanner/bin/sonar-scanner'
-                }
-            }
-        }
+
         stage('Deploy with Ansible') {
             steps {
                 //withCredentials是Credentials Binding Plugin插件提供的一个函数
