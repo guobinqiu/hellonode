@@ -1,0 +1,216 @@
+# 形象上说, 我让tekon的step对应jenkins的stage, tekton的script对应jenkins的step
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hellonode
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: key-for-git
+  namespace: hellonode
+  annotations:
+    tekton.dev/git-0: github.com
+type: kubernetes.io/ssh-auth
+data:
+  ssh-privatekey: LS0tLS1CRUdJTiBPUEVOU1NIIFBS...
+  known_hosts: Z2l0aHViLmNvbSBzc2gtcnNhIEFBQUFCM0...
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: key-for-docker
+  namespace: hellonode
+  annotations:
+    tekton.dev/docker-0: https://index.docker.io/v1/
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJodHR...
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: key-for-kube
+  namespace: hellonode
+type: Opaque
+data:
+  config: YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6C...
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hellonode-auth
+  namespace: hellonode
+secrets:
+  - name: key-for-git
+  - name: key-for-docker
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: hellonode
+  namespace: hellonode
+spec:
+  params:
+    - name: sha
+      type: string
+  workspaces:
+    - name: source
+  sidecars:
+    - name: docker-dind
+      image: docker.m.daocloud.io/docker:dind
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        - name: DOCKER_HOST
+          value: tcp://0.0.0.0:2375
+      securityContext:
+        privileged: true
+  steps:
+    - name: debug
+      image: busybox
+      script: |
+        #!/usr/bin/env sh
+        echo $(params.sha)
+    - name: checkout
+      image: docker.m.daocloud.io/alpine/git
+      script: |
+        #!/usr/bin/env sh
+        cd $(workspaces.source.path)
+        git clone git@github.com:guobinqiu/hellonode.git .
+    - name: build
+      image: docker.m.daocloud.io/docker
+      env:
+        - name: DOCKER_HOST
+          value: tcp://localhost:2375
+      script: |
+        #!/usr/bin/env sh
+        while ! docker info; do sleep 1; done
+        cd $(workspaces.source.path)
+        docker build -t qiuguobin/hellonode -f Dockerfile .
+        docker tag qiuguobin/hellonode qiuguobin/hellonode-$(params.sha)
+        docker push qiuguobin/hellonode
+        docker push qiuguobin/hellonode-$(params.sha)
+    - name: deploy
+      image: docker.m.daocloud.io/lachlanevenson/k8s-kubectl
+      volumeMounts:
+        - name: kubeconfig-volume
+          mountPath: /root/.kube
+      script: |
+        #!/usr/bin/env sh
+        cd $(workspaces.source.path)
+        kubectl apply -f k8s/deploy.yaml
+  volumes:
+    - name: kubeconfig-volume
+      secret:
+        secretName: key-for-kube
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: hellonode-binding
+  namespace: hellonode
+spec:
+  params:
+    - name: sha
+      value: $(body.head_commit.id)
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: hellonode-template
+  namespace: hellonode
+spec:
+  params:
+    - name: sha
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: TaskRun
+      metadata:
+        generateName: hellonode-run-
+        namespace: hellonode
+      spec:
+        serviceAccountName: hellonode-auth
+        taskRef:
+          name: hellonode
+        params:
+          - name: sha
+            value: $(tt.params.sha)
+        workspaces:
+          - name: source
+            emptyDir: {}
+        podTemplate:
+          hostAliases:
+            - ip: "192.168.1.10"
+              hostnames:
+                - lb.kubesphere.local
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hellonode-rbac
+  namespace: hellonode
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triggers-hellonode-eventlistener-binding
+  namespace: hellonode
+subjects:
+  - kind: ServiceAccount
+    name: hellonode-rbac
+    namespace: hellonode
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: triggers-hellonode-eventlistener-clusterbinding
+subjects:
+  - kind: ServiceAccount
+    name: hellonode-rbac
+    namespace: hellonode
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: hellonode-listener
+  namespace: hellonode
+spec:
+  serviceAccountName: hellonode-rbac
+  triggers:
+    - name: hellonode-trigger
+      bindings:
+        - ref: hellonode-binding
+      template:
+        ref: hellonode-template
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-hellonode-listener
+  namespace: hellonode
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: el-hellonode-listener
+                port:
+                  number: 8080
