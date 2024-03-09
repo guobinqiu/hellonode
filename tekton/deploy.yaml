@@ -100,7 +100,7 @@ spec:
       script: |
         #!/usr/bin/env sh
         cd $(workspaces.source.path)
-        kubectl apply -f k8s/deploy.yaml
+        kubectl apply -f kube/deploy.yaml
   volumes:
     - name: kubeconfig-volume
       secret:
