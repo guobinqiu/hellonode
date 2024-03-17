@@ -89,9 +89,9 @@ spec:
         while ! docker info; do sleep 1; done
         cd $(workspaces.source.path)
         docker build -t qiuguobin/hellonode -f Dockerfile .
-        docker tag qiuguobin/hellonode qiuguobin/hellonode-$(params.sha)
+        docker tag qiuguobin/hellonode qiuguobin/hellonode:$(params.sha)
         docker push qiuguobin/hellonode
-        docker push qiuguobin/hellonode-$(params.sha)
+        docker push qiuguobin/hellonode:$(params.sha)
     - name: deploy
       image: docker.m.daocloud.io/lachlanevenson/k8s-kubectl
       volumeMounts:
