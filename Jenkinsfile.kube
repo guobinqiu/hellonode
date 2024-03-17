@@ -23,10 +23,10 @@ pipeline {
                 ]) {
                     sh """
                     docker build -t qiuguobin/hellonode -f Dockerfile .
-                    docker tag qiuguobin/hellonode qiuguobin/hellonode-${GIT_COMMIT}
+                    docker tag qiuguobin/hellonode qiuguobin/hellonode:${GIT_COMMIT}
                     echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
                     docker push qiuguobin/hellonode
-                    docker push qiuguobin/hellonode-${GIT_COMMIT}
+                    docker push qiuguobin/hellonode:${GIT_COMMIT}
                     """
                 }
             }
